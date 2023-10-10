@@ -3,4 +3,7 @@
 /debug
 /x64
 /.vs
-/Vulkan_Engine
+/.sln
+/.vcxproj
+/.vcxproj.filter
+/.vcxproj.user
