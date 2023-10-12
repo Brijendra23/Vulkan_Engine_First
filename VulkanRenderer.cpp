@@ -8,8 +8,10 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 {
 	window = newWindow;
 	try{ createInstance(); 
+	createSurface();
 	getPhysicalDevice();
 	createLogicalDevice();
+	
 	
 	}
 	catch (const std::runtime_error& e)
@@ -27,6 +29,10 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 
 void VulkanRenderer::createInstance()
 {
+	if (enableValidationLayers && !checkValidationLayerSupport())
+	{
+		throw std::runtime_error("validation layers requested, but not available!");
+	}
 	//creating the application info
 	//not necessary info
 	VkApplicationInfo appInfo{};
@@ -74,9 +80,13 @@ void VulkanRenderer::createInstance()
 	createInfo.ppEnabledExtensionNames = instanceExtension.data();
 
 	//setup validation layer that instance wil use
-	createInfo.enabledLayerCount = 0;
-	createInfo.ppEnabledLayerNames = nullptr;
-
+	if (enableValidationLayers) {
+		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+		createInfo.ppEnabledLayerNames = validationLayers.data();
+	}
+	else {
+		createInfo.enabledLayerCount = 0;
+	}
 
 	//create instance
 	VkResult result=vkCreateInstance(&createInfo, nullptr, &instance);
@@ -161,6 +171,46 @@ void VulkanRenderer::createLogicalDevice()
 
 }
 
+void VulkanRenderer::createSurface()
+{ 
+	//create surface(creating a surface create infoo struct, runs the create surface function,returns result
+	VkResult result=glfwCreateWindowSurface(instance, window, nullptr, &surface);
+	if (result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create window surface!");
+	}
+
+}
+
+bool VulkanRenderer::checkValidationLayerSupport()
+{
+	//Getting the number of layers present in the instance
+	uint32_t layerCount=0;
+	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+	std::vector<VkLayerProperties> availableLayers(layerCount);
+	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+	//checking for the validation layers in the avaliable layers and validation layer
+	for (const char* layerName : validationLayers) {
+		bool layerFound = false;
+
+		for (const auto& layerProperties : availableLayers) {
+			if (strcmp(layerName, layerProperties.layerName) == 0) {
+				layerFound = true;
+				break;
+			}
+		}
+
+		if (!layerFound) {
+			return false;
+		}
+	}
+
+	return true;
+
+}
+
 bool VulkanRenderer::checkInstanceExtensionSupport(std::vector<const char*>* checkExtensions)
 {
 	uint32_t extensionCount = 0;
@@ -230,6 +280,13 @@ QueueFamilyIndices VulkanRenderer::getQueueFamilies(VkPhysicalDevice device)
 			indices.graphicFamily = i;//if queue family valid store its index
 		}
 		
+		VkBool32 presentationSupport = false;
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentationSupport);
+		//checking if presentation type(can be both of the type of graphic family and presentation)
+		if (queueFamily.queueCount >= 0 && presentationSupport)
+		{
+			indices.presentationFamily = i;
+		}
 
 		//check if graphic family found then stop further checking
 		if (indices.isValid())
@@ -243,6 +300,7 @@ QueueFamilyIndices VulkanRenderer::getQueueFamilies(VkPhysicalDevice device)
 }
 void VulkanRenderer::cleanup()
 {
+	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyDevice(mainDevice.logicalDevice, nullptr);
 	vkDestroyInstance(instance, nullptr);
 }

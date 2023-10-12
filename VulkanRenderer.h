@@ -19,6 +19,7 @@ public:
 		VkDevice logicalDevice;
 	} mainDevice;
 	VkQueue graphicsQueue;
+	VkSurfaceKHR surface;
 
 	void cleanup();
 
@@ -38,7 +39,7 @@ private:
 	//Create Functions
 	void createInstance();
 	void createLogicalDevice();
-
+	void createSurface();
 
 	//get phhysical device function
 	void getPhysicalDevice();
@@ -48,6 +49,7 @@ private:
 	//--checker function
 	bool checkInstanceExtensionSupport(std::vector<const char*>* checkExtensions);//checking whther the extensions required are valid or not
 	bool checkDeviceSuitable(VkPhysicalDevice device);
+	bool checkValidationLayerSupport();
 
 	//--getter function
 	QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device);
