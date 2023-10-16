@@ -5,7 +5,7 @@
 #include<stdexcept>
 #include<vector>
 #include"Utilities.h"
-
+#include<set>
 
 class VulkanRenderer
 {
@@ -19,6 +19,7 @@ public:
 		VkDevice logicalDevice;
 	} mainDevice;
 	VkQueue graphicsQueue;
+	VkQueue presentationQueue;
 	VkSurfaceKHR surface;
 
 	void cleanup();
@@ -48,11 +49,15 @@ private:
 	//Vulkan support function
 	//--checker function
 	bool checkInstanceExtensionSupport(std::vector<const char*>* checkExtensions);//checking whther the extensions required are valid or not
+	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 	bool checkDeviceSuitable(VkPhysicalDevice device);
 	bool checkValidationLayerSupport();
 
 	//--getter function
 	QueueFamilyIndices getQueueFamilies(VkPhysicalDevice device);
+
+	SwapChainDetails  getSwapChainDetails(VkPhysicalDevice device);
+
 
 
 	
