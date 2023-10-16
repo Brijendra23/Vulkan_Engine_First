@@ -11,6 +11,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 	createSurface();
 	getPhysicalDevice();
 	createLogicalDevice();
+	createSwapChain();
 	
 	
 	}
@@ -194,6 +195,155 @@ void VulkanRenderer::createSurface()
 
 }
 
+void VulkanRenderer::createSwapChain()
+{
+	//get the swapchain details so we can choose the best settings for the swapchain
+	SwapChainDetails swapChainDetails = getSwapChainDetails(mainDevice.physicalDevice);
+
+	//Best Format Settings
+	VkSurfaceFormatKHR surfaceFormat = chooseBestSurfaceFormat(swapChainDetails.formats);
+
+	//Best Presentation mode settings
+	VkPresentModeKHR presentationMode = chooseBestPresentationMode(swapChainDetails.presentationMode);
+	//Best surface capabilities
+	VkExtent2D extent = chooseSwapExtent(swapChainDetails.surfaceCapabilites);
+	//how many images in the swapchange? get 1more than minimum to allow triple buffering
+	//if 0 then limitless
+	uint32_t imageCount = swapChainDetails.surfaceCapabilites.minImageCount + 1;
+
+	//if imageCount is higher than max, clamp it down to max
+	if (swapChainDetails.surfaceCapabilites.maxImageCount>0&&
+		swapChainDetails.surfaceCapabilites.maxImageCount < imageCount)
+	{
+		imageCount = swapChainDetails.surfaceCapabilites.maxImageCount;
+	}
+	
+
+	// swapchain creatinfo
+	VkSwapchainCreateInfoKHR swapchainCreateInfo{};
+	swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	swapchainCreateInfo.surface = surface;
+	swapchainCreateInfo.presentMode = presentationMode;
+	swapchainCreateInfo.imageExtent = extent;
+	swapchainCreateInfo.imageFormat = surfaceFormat.format;
+	swapchainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
+	swapchainCreateInfo.minImageCount = imageCount;
+	swapchainCreateInfo.imageArrayLayers = 1;													//number of layers for each image in chain
+	swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;						//what attachment images will be used as
+	swapchainCreateInfo.preTransform = swapChainDetails.surfaceCapabilites.currentTransform;	//transform to perform on the swapchain
+	swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;                     //how to handle blendng images with external graphics
+	swapchainCreateInfo.clipped = VK_TRUE;														//whether to clipp the parts of image when behind other window
+	
+
+	//get wueue family indices
+	QueueFamilyIndices indices = getQueueFamilies(mainDevice.physicalDevice);
+
+	//if graphics and presentation family are different the =n swapchain images must be used shared between families
+	if (indices.graphicFamily != indices.presentationFamily)
+	{
+		uint32_t queueFamilyIndices[] = {
+			(uint32_t)indices.graphicFamily,(uint32_t)indices.presentationFamily
+		};
+
+		swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT; //image share handle
+		swapchainCreateInfo.queueFamilyIndexCount = 2;						//number of queues to share image between
+		swapchainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;		//array of queue that image is to be shared with
+	}
+	else
+	{
+		swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		swapchainCreateInfo.queueFamilyIndexCount = 0;
+		swapchainCreateInfo.pQueueFamilyIndices = nullptr;
+	}
+	//if old swapchain destroyed and this one replces it, then link old one to quickly hand over the responsibilities
+	swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+
+	//create SwapChain
+	VkResult result = vkCreateSwapchainKHR(mainDevice.logicalDevice, &swapchainCreateInfo, nullptr, &swapChain);
+
+	if (result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create SwapChain!");
+	}
+}
+
+
+
+//best format is subjective, but ours willbe :
+//Format: VK_FORMAT_R8G8B8A8_UNORM(VK_FORMAT_B8G8R8A8_UNORM backup value)
+//colorSpace: VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
+VkSurfaceFormatKHR VulkanRenderer::chooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats)
+{
+	// if the formats size is 1 and the 0 element is vk_format_undefined says that all the format exist are available to use 
+	// so instead of passing all the formats names they pass only one value 1 and that saya all the existing formats are available
+	if (formats.size() == 1 && formats[0].format == VK_FORMAT_UNDEFINED)
+	{
+		return { VK_FORMAT_R8G8B8A8_UNORM,VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+	}
+
+	//checking from specific formats for the required best
+	for (const auto& format : formats)
+	{
+		if (format.format == (VK_FORMAT_R8G8B8A8_UNORM || VK_FORMAT_B8G8R8A8_UNORM) && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+		{
+			return format;
+		}
+	}
+	return formats[0];
+	
+}
+
+
+//Best presentation mode
+
+
+VkPresentModeKHR VulkanRenderer::chooseBestPresentationMode(const std::vector<VkPresentModeKHR>& presentationModes)
+{
+	for (const auto& presentationMode : presentationModes)
+	{
+		if (presentationMode == VK_PRESENT_MODE_MAILBOX_KHR)
+		{
+			return presentationMode;
+		}
+	}
+	return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+VkExtent2D VulkanRenderer::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities)
+{
+	//if current extent is at numeric limits, then extent can vary.\Otherwise ,it is the size of the window.
+	if (surfaceCapabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+	{
+		return surfaceCapabilities.currentExtent;
+	}
+	else
+	{
+		//if value can vary, need to set manually 
+
+		int width, height;
+		//get the window size
+		glfwGetFramebufferSize(window, &width, &height);
+
+
+		//create new extent 
+		VkExtent2D newExtent = {};
+		newExtent.width = width;
+		newExtent.height = height;
+
+		//surface also dedines max and min, so make sure within boundaries by clamping value
+		newExtent.width = std::max(surfaceCapabilities.minImageExtent.width, std::min(surfaceCapabilities.maxImageExtent.width, newExtent.width));
+		newExtent.height = std::max(surfaceCapabilities.minImageExtent.height, std::min(surfaceCapabilities.maxImageExtent.height, newExtent.height));
+
+
+		return newExtent;
+
+
+
+
+	}
+	
+}
+
 bool VulkanRenderer::checkValidationLayerSupport()
 {
 	//Getting the number of layers present in the instance
@@ -363,6 +513,7 @@ QueueFamilyIndices VulkanRenderer::getQueueFamilies(VkPhysicalDevice device)
 }
 void VulkanRenderer::cleanup()
 {
+	vkDestroySwapchainKHR(mainDevice.logicalDevice, swapChain, nullptr);
 	vkDestroySurfaceKHR(instance, surface, nullptr);
 	vkDestroyDevice(mainDevice.logicalDevice, nullptr);
 	vkDestroyInstance(instance, nullptr);

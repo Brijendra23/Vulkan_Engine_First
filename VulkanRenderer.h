@@ -6,6 +6,7 @@
 #include<vector>
 #include"Utilities.h"
 #include<set>
+#include<algorithm>
 
 class VulkanRenderer
 {
@@ -21,6 +22,7 @@ public:
 	VkQueue graphicsQueue;
 	VkQueue presentationQueue;
 	VkSurfaceKHR surface;
+	VkSwapchainKHR swapChain;
 
 	void cleanup();
 
@@ -41,9 +43,14 @@ private:
 	void createInstance();
 	void createLogicalDevice();
 	void createSurface();
+	void createSwapChain();
+
+	
 
 	//get phhysical device function
 	void getPhysicalDevice();
+
+	
 
 
 	//Vulkan support function
@@ -58,6 +65,10 @@ private:
 
 	SwapChainDetails  getSwapChainDetails(VkPhysicalDevice device);
 
+	//-- choose functions
+	VkSurfaceFormatKHR chooseBestSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& formats);
+	VkPresentModeKHR chooseBestPresentationMode(const std::vector<VkPresentModeKHR>& presentationModes);
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities);
 
 
 	
