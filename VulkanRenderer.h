@@ -24,6 +24,17 @@ public:
 	VkSurfaceKHR surface;
 	VkSwapchainKHR swapChain;
 
+
+	std::vector<swapChainImage> swapChainImages;
+
+
+
+	//Utilities
+	//-Main
+
+	VkFormat swapchainImageFormat;
+	VkExtent2D swapchainExtent;
+
 	void cleanup();
 
 
@@ -70,7 +81,9 @@ private:
 	VkPresentModeKHR chooseBestPresentationMode(const std::vector<VkPresentModeKHR>& presentationModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& surfaceCapabilities);
 
+	//--createFunction
 
+	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 	
 };
 
