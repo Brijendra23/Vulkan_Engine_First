@@ -7,6 +7,7 @@
 #include"Utilities.h"
 #include<set>
 #include<algorithm>
+#include<array>
 
 class VulkanRenderer
 {
@@ -48,6 +49,13 @@ private:
 	//vulkan components
 	VkInstance instance;
 
+	//Graphics Pipeline
+	VkPipeline graphicsPipeline;
+
+	//Pipeline
+	VkPipelineLayout pipelineLayout;
+	//renderpass
+	VkRenderPass renderPass;
 
 	//vulkan functions 
 	//Create Functions
@@ -55,6 +63,7 @@ private:
 	void createLogicalDevice();
 	void createSurface();
 	void createSwapChain();
+	void createRenderPass();
 	void createGraphicsPipeline();
 	
 
