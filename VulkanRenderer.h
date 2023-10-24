@@ -27,12 +27,14 @@ public:
 
 
 	std::vector<swapChainImage> swapChainImages;
+	std::vector<VkFramebuffer> swapChainFramebuffers;
+	std::vector<VkCommandBuffer> commandBuffers;
 
-
+	//pools
+	VkCommandPool graphicsCommandPool;
 
 	//Utilities
 	//-Main
-
 	VkFormat swapchainImageFormat;
 	VkExtent2D swapchainExtent;
 
@@ -49,14 +51,15 @@ private:
 	//vulkan components
 	VkInstance instance;
 
-	//Graphics Pipeline
-	VkPipeline graphicsPipeline;
-
+	
 	//Pipeline
 	VkPipelineLayout pipelineLayout;
 	//renderpass
 	VkRenderPass renderPass;
-
+	//Graphics Pipeline
+	VkPipeline graphicsPipeline;
+	
+	
 	//vulkan functions 
 	//Create Functions
 	void createInstance();
@@ -65,6 +68,13 @@ private:
 	void createSwapChain();
 	void createRenderPass();
 	void createGraphicsPipeline();
+	void createFrameBuffers();
+	void createCommandPool();
+	void createCommandBuffers();
+	  
+
+	//-Record Function
+	void recordCommands();
 	
 
 	//get phhysical device function
