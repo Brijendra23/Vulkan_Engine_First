@@ -28,6 +28,7 @@ int main()
 	while (!glfwWindowShouldClose(window.window))
 	{
 		glfwPollEvents();
+		vulkanRenderer.draw();
 
 	}
 

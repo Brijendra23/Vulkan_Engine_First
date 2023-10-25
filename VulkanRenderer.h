@@ -15,6 +15,7 @@ public:
 	VulkanRenderer();
 
 	int init(GLFWwindow* newWindow);
+	void draw();
 
 	struct {
 		VkPhysicalDevice physicalDevice;
@@ -38,6 +39,15 @@ public:
 	VkFormat swapchainImageFormat;
 	VkExtent2D swapchainExtent;
 
+
+
+	//_synchronization
+	std::vector<VkSemaphore> imageAvailable;
+	std::vector<VkSemaphore> renderFinished;
+	std::vector<VkFence> drawFences;
+
+
+
 	void cleanup();
 
 
@@ -46,7 +56,11 @@ public:
 
 
 private:
+	
 	GLFWwindow* window;
+
+	int currentFrame = 0;
+
 
 	//vulkan components
 	VkInstance instance;
@@ -71,6 +85,7 @@ private:
 	void createFrameBuffers();
 	void createCommandPool();
 	void createCommandBuffers();
+	void createSynchronization();
 	  
 
 	//-Record Function
@@ -104,6 +119,7 @@ private:
 
 	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 	VkShaderModule createShaderModule(const std::vector<char>& code);
+	
 	
 };
 
