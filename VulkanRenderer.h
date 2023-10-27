@@ -4,6 +4,7 @@
 
 #include<stdexcept>
 #include<vector>
+#include"Mesh.h"
 #include"Utilities.h"
 #include<set>
 #include<algorithm>
@@ -13,6 +14,10 @@ class VulkanRenderer
 {
 public:
 	VulkanRenderer();
+
+	//SCene Objects
+	Mesh firstObject;
+
 
 	int init(GLFWwindow* newWindow);
 	void draw();

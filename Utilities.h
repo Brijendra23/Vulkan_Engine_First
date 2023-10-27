@@ -1,6 +1,7 @@
 #pragma once
 
 #include<fstream>
+#include<glm/glm.hpp>
 
 
 const int MAX_FRAME_DRAWS = 2;
@@ -11,7 +12,11 @@ const std::vector<const char*> deviceExtensions = {
 };
 
 
-
+//Vertex Data Representation
+struct Vertex {
+	glm::vec3 pos;//Vertex Position (x,y,z)
+	glm::vec3 col; //Color value(r,g,b)
+};
 
 
 
