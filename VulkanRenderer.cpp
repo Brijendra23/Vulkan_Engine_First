@@ -13,15 +13,7 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 	createLogicalDevice();
 
 
-	//Create a mesh
-	std::vector<Vertex> meshVertices = {
-		{{0.0,-0.4,0.0},{1.0,0.0,0.0}},
-		{ {0.4,0.4,0.0},{0.0,0.0,1.0}},
-		{{-0.4,0.4,0.0},{0.0,1.0,0.0}}
-	};
-
-	firstObject = Mesh(mainDevice.physicalDevice, mainDevice.logicalDevice, &meshVertices);
-
+	
 
 
 
@@ -32,6 +24,17 @@ int VulkanRenderer::init(GLFWwindow* newWindow)
 	createGraphicsPipeline();
 	createFrameBuffers();
 	createCommandPool();
+	//Create a mesh
+	std::vector<Vertex> meshVertices = {
+		{{0.0,-0.4,0.0},{1.0,0.0,0.0}},
+		{ {0.4,0.4,0.0},{0.0,0.0,1.0}},
+		{{-0.4,0.4,0.0},{0.0,1.0,0.0}}
+	};
+
+	firstObject = Mesh(mainDevice.physicalDevice, mainDevice.logicalDevice,
+		graphicsQueue, graphicsCommandPool,
+		&meshVertices);
+
 	createCommandBuffers();
 	recordCommands();
 	createSynchronization();
