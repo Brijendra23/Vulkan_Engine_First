@@ -16,8 +16,7 @@ public:
 	VulkanRenderer();
 
 	//SCene Objects
-	Mesh firstObject;
-
+	std::vector<Mesh> meshList;
 
 	int init(GLFWwindow* newWindow);
 	void draw();
